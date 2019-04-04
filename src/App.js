@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import './App.css';
 import Task from "./Components/Task"
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
+import { connect } from "react-redux"
+import { addNewTask, completeTask, deleteTask} from "./redux/reducer"
 
 class App extends Component {
   constructor(){
@@ -10,7 +11,6 @@ class App extends Component {
       taskName:"",
       taskDescription:"",
       id:0,
-      tasks:[],
       error:false
     }
   }
@@ -32,17 +32,17 @@ class App extends Component {
         description:this.state.taskDescription,
         completed:false
       }
-      let tasksCopy = this.state.tasks.slice()
+      let tasksCopy = this.props.tasks.slice()
       tasksCopy.push(task)
 
+      
+      this.props.addNewTask(tasksCopy)
+
       this.setState({
-        tasks:tasksCopy,
-        id:this.state.id+1
-      })
-      this.setState({
+        id:this.state.id+1,
         taskName:"",
         taskDescription:"",
-        error:!this.state.error
+        error:false
       })
 
     }
@@ -50,32 +50,27 @@ class App extends Component {
   }
   
   completeTask = (id) =>{
-    let tasksCopy = this.state.tasks.slice()
+    let tasksCopy = this.props.tasks.slice()
     for(let i = 0; i < tasksCopy.length; i++){
       if(tasksCopy[i].id == id){
         tasksCopy[i].completed = true
       }
     }
-    this.setState({
-      tasks:tasksCopy
-    })
+    this.props.completeTask(tasksCopy)
   }
   deleteTask = (id) =>{
-    console.log(id)
-    let tasksCopy = this.state.tasks.slice()
-    for(let i = 0; i < tasksCopy.length; i++){
-      if(tasksCopy[i].id == id){
-        console.log("ID TO DELETE:", tasksCopy[i])
-        tasksCopy.splice(tasksCopy[i],1)
+    let copyOfTasks = this.props.tasks.slice()
+    for(let i = 0; i < copyOfTasks.length; i++){
+      if(copyOfTasks[i].id === id){
+        console.log("ID TO DELETE:", copyOfTasks.indexOf(copyOfTasks[i]))
+
+        copyOfTasks.splice(copyOfTasks.indexOf(copyOfTasks[i]),1)
       }
-      this.setState({
-        tasks:tasksCopy
-      })
+      this.props.deleteTask(copyOfTasks)
     }
   }
   render() {
-    let mappedTasks = this.state.tasks.map(task =>{
-      console.log(task)
+    let mappedTasks = this.props.tasks.map(task =>{
       return(
         <Task task_id = {task.id}
               task_title = {task.title}
@@ -106,4 +101,10 @@ class App extends Component {
   }
 }
 
-export default App;
+let MapStateToProps = (state) =>{
+  return{
+    tasks:state.tasks
+  }
+}
+
+export default connect(MapStateToProps,{addNewTask, completeTask, deleteTask})(App);
